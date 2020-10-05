@@ -1,0 +1,162 @@
+---
+title: "Exercicio 11"
+author: "Renato Victor Lira Brito"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+```
+
+```{r}
+setwd("C:\\Users\\Renato\\Downloads")
+```
+
+```{r}
+library(tidyverse)
+library(haven)
+
+link <- "https://github.com/MartinsRodrigo/Analise-de-dados/blob/master/04622.sav?raw=true"
+
+download.file(link, "04622.sav", mode = "wb")
+
+banco <- read_spss("04622.sav") 
+
+banco <- banco %>%
+  mutate(D10 = as_factor(D10)) %>%
+  filter(Q1607 < 11, 
+         Q18 < 11,
+         D9 < 9999998,
+         Q1501 < 11)
+
+
+Outras <- levels(banco$D10)[-c(3,5,13)]
+
+banco <- banco %>%
+  mutate(religiao = case_when(D10 %in% Outras ~ "Outras",
+                              D10 == "Católica" ~ "Católica",
+                              D10 == "Evangélica" ~ "Evangélica",
+                              D10 == "Não tem religião" ~ "Não tem religião"))
+```
+```{r}
+library(pscl)
+library(sjPlot)
+library(dotwhisker)
+library(dplyr)
+```
+
+### Faça uma regressão linear avaliando em que medida as variáveis independentes utilizadas nos exercícios 7 e 8, idade(D1A_ID), educação (D3_ESCOLA), renda (D9), nota atribuída ao PT (Q1501), auto-atribuição ideológica (Q18), sexo (D2_SEXO) e religião (variável criada no passo anterior) explicam a avaliação de Bolsonaro (Q1607)
+
+```{r}
+Regressao_multivariada_01 <- lm(Q1607 ~ D1A_ID + D3_ESCOLA + D9 + Q1501 + Q18 + D2_SEXO + religiao, data = banco)
+```
+```{r}
+summary(Regressao_multivariada_01)
+```
+```{r}
+confint(Regressao_multivariada_01)
+```
+```{r}
+dwplot(Regressao_multivariada_01, vline = geom_vline(xintercept = 0, colour = "grey60", linetype = 2))
+```
+A partir da regressão (regressao_multivariada_01), podemos observar os resíduos, com mínimo de -9,0608 e máximo de 8,9954. A mediana se aproxima de 0 (valor que está entre a mediana e o primeiro quartil). O RSE, ou seja, a distância média dos valores que foram observados para os estimados, foi de 3,296 com 1.452 graus de liberdade. O intercepto, para o caso de as variáveis independentes serem "0", ou seja, para o valor primário dessas VI's, a saber, a escolaridade mínima, idade mínima, renda mínima, menor nota atribuída ao PT possível, gênero masculino (padrão) e religião católica (padrão), foi de 6,216, o que quer dizer que, controlando por todo o resto, obteríamos um valor de 6,216 na avaliação de Bolsonaro, com erro padrão de 5,365e-01 e Valor T de 11,586, além de p-valor menor que 2e-16. 
+
+O valor β D1A_ID, que representa a mudança em Y para cada mudança em unidades de X, foi 1,040e-02, com erro padrão de 6,234e-03, Valor T de 1,669 e p-valor de 0,095376, considerado alto para análises que tratam de p-valor ideal como 0,01 e 0,05. Nesse sentido, cada aumento de unidade em X afetaria positivamente 0,0104 a variável Y. No entanto, como o p-valor é alto, os resultados não são significantes estatisticamente.
+
+O valor β D3_ESCOLA, que representa a mudança em Y para cada mudança em unidades de X, foi -1,116e-01, com erro padrão de 4,486e-02, Valor T de -2,487 e p-valor de 0,012982, considerado baixo para análises que tratam de p-valor ideal como 0,05. Nesse sentido, cada aumento de unidade em X afetaria negativamente 0,1116 a variável Y. Como o p-valor é baixo, os resultados são significantes estatisticamente.
+
+O valor β D9, que representa a mudança em Y para cada mudança em unidades de X, foi -3,620e-05, com erro padrão de 2,764e-05, Valor T de -1,309 e p-valor de 0,190576, considerado alto para análises que tratam de p-valor ideal como 0,01 e 0,05. Nesse sentido, cada aumento de unidade em X afetaria negativamente 0,0000362 a variável Y. No entanto, como o p-valor é alto, os resultados não são significantes estatisticamente.
+
+O valor β Q1501, que representa a mudança em Y para cada mudança em unidades de X, foi -3,946e-01, com erro padrão de 2,367e-02, Valor T de -16,670 e p-valor menor que 2e-16, considerado baixo para análises que tratam de p-valor ideal como 0,01 e 0,05.Nesse sentido, cada aumento de unidade em X afetaria negativamente 0,3946 a variável Y. Como o p-valor é baixo, os resultados são significantes estatisticamente.
+
+O valor β Q18, que representa a mudança em Y para cada mudança em unidades de X, foi 3,161e-01, com erro padrão de 2,603e-02, Valor T de 12,142 e p-valor menor que 2e-16, considerado baixo para análises que tratam de p-valor ideal como 0,01 e 0,05. Nesse sentido, cada aumento de unidade em X afetaria positivamente 0,3161 a variável Y. Como o p-valor é baixo, os resultados são significantes estatisticamente.
+
+O valor β D2_SEXO (Feminino), que representa a mudança em Y para cada mudança em unidades de X, foi -6,874e-01, com erro padrão de 1,746e-01, Valor T de -3,937 e p-valor de 8,63e-05, considerado baixo para análises que tratam de p-valor ideal como 0,01 e 0,05. Nesse sentido, cada aumento de unidade em X afetaria negativamente 0,6874 a variável Y. Como o p-valor é baixo, os resultados são significantes estatisticamente.
+
+O valor β religiao (Evangélica), que representa a mudança em Y para cada mudança em unidades de X, foi 6,685e-01, com erro padrão de 1,984e-01, Valor T de 3,370 e p-valor de  0,000772, considerado baixo para análises que tratam de p-valor ideal como 0,01 e 0,05. Nesse sentido, cada aumento de unidade em X afetaria positivamente 0,6685 a variável Y. Como o p-valor é baixo, os resultados são significantes estatisticamente.
+
+O valor β religiao (Não tem religião), que representa a mudança em Y para cada mudança em unidades de X, foi -7,565e-02, com erro padrão de 3,485e-01, Valor T de -0,217 e p-valor de 0,828177, considerado alto para análises que tratam de p-valor ideal como 0,01 e 0,05. Nesse sentido, cada aumento de unidade em X afetaria negativamente 0,07565 a variável Y. No entanto, como o p-valor é alto, os resultados não são significantes estatisticamente.
+
+O valor β religiao (Outras), que representa a mudança em Y para cada mudança em unidades de X, foi -8,326e-01, com erro padrão de 3,081e-01, Valor T de -2,702 e p-valor de 0,006963, considerado baixo para análises que tratam de p-valor ideal como 0,05. Nesse sentido, cada aumento de unidade em X afetaria negativamente 0,8326 a variável Y. Como o p-valor é baixo, os resultados são significantes estatisticamente.
+
+O R-squared, que representa a proporção da variável dependente que é explicada pelo modelo, foi de  0,3018, ou 30,18%.
+
+### Faça o teste de homoscedasticidade do modelo e corrija as estimações dos coeficientes caso seja necessário.
+
+```{r}
+plot(Regressao_multivariada_01, 3)
+```
+
+```{r}
+plot(Regressao_multivariada_01, 1)
+```
+```{r}
+library(lmtest)
+```
+
+```{r}
+bptest(Regressao_multivariada_01)
+```
+
+```{r}
+library(car)
+```
+
+```{r}
+ncvTest(Regressao_multivariada_01)
+```
+
+Como a hipótese nula aborda a  homocedasticidade ou ausência de heterocedasticidade, deve-se, para para satisfazer o pressuposto, não rejeitar a hipótese nula. Para isso, é preciso obter p-valor altos nos testes, o que não foi o caso dos testes realizados neste exercício, que foram 1,025e-10 e 2,1178e-06, respectivamente. Dessa forma, é possível rejeitar a hipótese nula, o que implica que o modelo não passou no teste da homocedasticidade e deve ser ajustado.
+
+```{r}
+library(sandwich)
+
+```
+
+```{r}
+coeftest(Regressao_multivariada_01, 
+         vcov = vcovHC(Regressao_multivariada_01, type = "HC3"))
+```
+
+### Avalie a multicolinearidade entre as variáveis
+
+```{r}
+vif(Regressao_multivariada_01)
+```
+
+Como o teste afirma que o valor mínimo (quando não há multicolinearidade) é 1, e que valores acima de 4 ou 10 (para padrões mais flexíveis) são problemáticos, podemos observar que o modelo de regressão multivariada aqui testado satisfaz o pressuposto que preza pelo mínimo de multicolinearidade, já que os números ficaram entre 1 e 1,33.
+
+### Verifique a presença de outilier ou observações influentes no modelo
+
+```{r}
+plot(Regressao_multivariada_01, 4)
+```
+
+```{r}
+plot(Regressao_multivariada_01, 5)
+```
+
+Após a análise dos gráficos, podemos observar que há presença de outliers ou observações influentes no modelo, já que no segundo gráfico os pontos ultrapassam a linha pontilhada em vermelho e no primeiro gráfico há a descrição clara de que as observações 1442, 160 e 399 são diferenciadas.
+
+
+### Faça a regressao linear sem a observação mais influente e avalie a alteração do resultado
+
+Regressão multivariada sem as observações mais influentes encontradas nos gráficos anteriores:
+
+```{r}
+BANCO_SEM_OUTLIERS <- banco %>%
+  slice (-c (1442, 399, 160))
+```
+
+```{r}
+Regressao_multivariada_02_sem_outliers <- lm(Q1607 ~ D1A_ID + D3_ESCOLA + D9 + Q1501 + Q18 + D2_SEXO + religiao, data = BANCO_SEM_OUTLIERS)
+```
+
+```{r}
+summary(Regressao_multivariada_02_sem_outliers)
+```
+
+A exclusão dos outliers da análise não apresentou grandes mudanças nos resultados: idade, renda e religiao(Não tem religião) continuaram não sendo significantes estatisticamente para a análise. O r-squared, no entanto, apresentou uma variação discreta de 30,18% para 30,60%. Para as outras variáveis, a significância continuou a mesma, de maneira que este modelo complementar, retirando outliers, aumenta a robustez da pesquisa e confirma informações obtidas anteriormente.
+
+
+
